@@ -94,15 +94,8 @@ const render = () => {
             // Cannot validate results make sense, but this is okay.
             console.log("Disjoint triggered.");
         } else {
-            var elapsed_result = gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT_EXT);
-            // Do some basic validity checking of the elapsed time query. There's no way it should
-            // take more than about half a second for a no-op query.
-            var halfSecondInNanos = 0.5 * 1000 * 1000 * 1000;
-            if (elapsed_result < 0 || elapsed_result > halfSecondInNanos) {
-                console.log("test failed: Time elapsed query returned invalid data: " + elapsed_result);
-            } else {
-                console.log("test passed Time elapsed query results were valid.");
-            }
+            let elapsed_result = gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT_EXT);
+            console.log(elapsed_result)
         }        
     }
 
