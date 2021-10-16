@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import 'stats.js'
 
 const render = () => {
     const canvas = document.querySelector('#c');
@@ -44,9 +45,16 @@ const render = () => {
     console.log(ext)
     console.log(window)
 
-    let availability_retry = 500
-    let elapsed_query = gl.createQuery();
+    let stats = new stats_js__WEBPACK_IMPORTED_MODULE_0__()
+    console.log(stats)
+    stats.showPanel(3);
+    let queryPanel = stats.addPanel( new stats_js__WEBPACK_IMPORTED_MODULE_0__.Panel( 'ms', '#ff8', '#221' ) );
+    document.body.appendChild(stats.dom);
 
+    let availability_retry = 500
+    let elapsed_query = gl.createQuery()
+    let enableQueryOnce = true
+    let lastQueryResult = 0
     // function checkQueryResults() {
 
     //     console.log('checkQueryResults')
@@ -74,7 +82,6 @@ const render = () => {
     // }
 
     function checkQueryResults() {
-        console.log('checkQueryResults')
         if (availability_retry > 0) {
             // Make a reasonable attempt to wait for the queries' results to become available.
             if (!gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT_AVAILABLE)) {
@@ -89,18 +96,32 @@ const render = () => {
             }
         }
     
-        var disjoint_value = gl.getParameter(ext.GPU_DISJOINT_EXT);
+        let disjoint_value = gl.getParameter(ext.GPU_DISJOINT_EXT);
+        let available = gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT_AVAILABLE);
+        if(!available)
+            return;
+
         if (disjoint_value) {
             // Cannot validate results make sense, but this is okay.
             console.log("Disjoint triggered.");
         } else {
-            let elapsed_result = gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT_EXT);
-            console.log(elapsed_result)
+            let elapsed_result = gl.getQueryParameter(elapsed_query, gl.QUERY_RESULT);
+            if(elapsed_result > 0) {
+                enableQueryOnce = true
+                let toms =  elapsed_result/1000
+                lastQueryResult = toms
+                console.log(toms)
+            }
         }        
     }
 
     function renderQueryEx1(time) {
-        gl.beginQuery(ext.TIME_ELAPSED_EXT, elapsed_query);
+        stats.begin()
+
+        if(enableQueryOnce) {
+            gl.beginQuery(ext.TIME_ELAPSED_EXT, elapsed_query);
+        }
+
         time *= 0.001;  // convert time to seconds
     
         cube.rotation.x = time;
@@ -112,61 +133,18 @@ const render = () => {
         }
 
         renderer.render(scene, camera);
-        gl.endQuery(ext.TIME_ELAPSED_EXT);
+        if(enableQueryOnce)
+        {
+            gl.endQuery(ext.TIME_ELAPSED_EXT);
+            enableQueryOnce = false;
+        }
         
+        stats.end()
+        queryPanel.update( lastQueryResult, 400 );
+
         requestAnimationFrame(renderQueryEx1);
         window.requestAnimationFrame(checkQueryResults)
     }
-
-    function renderQueryEx2(time)
-    {
-        time *= 0.001;  // convert time to seconds
-        
-        cube.rotation.x = time;
-        cube.rotation.y = time;
-        let ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
-        let startQuery = gl.createQuery();
-        let endQuery = gl.createQuery();
-
-        if (startQuery) {
-            let available = gl.getQueryParameter(endQuery, gl.QUERY_RESULT_AVAILABLE);
-            let disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
-  
-            if (available && !disjoint) {
-              // See how much time the rendering of the object took in nanoseconds.
-              let timeStart = gl.getQueryParameter(startQuery, gl.QUERY_RESULT);
-              let timeEnd = gl.getQueryParameter(endQuery, gl.QUERY_RESULT);
-  
-              // Do something useful with the time.  Note that care should be
-              // taken to use all significant bits of the result, not just the
-              // least significant 32 bits.
-              console.log(timeEnd - timeStart);
-            }
-  
-            if (available || disjoint) {
-              // Clean up the query objects.
-              gl.deleteQuery(startQuery);
-              gl.deleteQuery(endQuery);
-  
-              // Don't re-enter this polling loop.
-              startQuery = null;
-              endQuery = null;
-            }
-        }
-
-        ext.queryCounterEXT(startQuery, ext.TIMESTAMP_EXT);
-
-        if (resizeRendererToDisplaySize(renderer)) {
-            const canvas = renderer.domElement;
-            camera.aspect = canvas.clientWidth / canvas.clientHeight;
-            camera.updateProjectionMatrix();
-        }
-        renderer.render(scene, camera);
-        ext.queryCounterEXT(endQuery, ext.TIMESTAMP_EXT);
-
-        requestAnimationFrame(renderQueryEx2);
-    }
-
     requestAnimationFrame(renderQueryEx1);
 }
 
