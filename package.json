@@ -1,0 +1,25 @@
+{
+  "name": "webgl-gpuframetime",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siddharthcmdz/webgl-gpuframetime.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/siddharthcmdz/webgl-gpuframetime/issues"
+  },
+  "homepage": "https://github.com/siddharthcmdz/webgl-gpuframetime#readme",
+  "devDependencies": {
+    "three": "^0.133.1",
+    "webpack": "^5.58.2",
+    "webpack-cli": "^4.9.0"
+  }
+}
