@@ -14,12 +14,12 @@ module.exports = {
         new HtmlWebPackPlugin({
             template: './src/index.html',
             filename: './index.html'
-        }),
-        new CopyPlugin({
-            patterns: [
-                {from: './src/index.css', to: '.'}
-            ]
         })
+        // new CopyPlugin({
+        //     patterns: [
+        //         {from: './src/index.css', to: '.'}
+        //     ]
+        // })
     ],
     module: {
         rules: [

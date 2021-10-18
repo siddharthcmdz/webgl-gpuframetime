@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import 'stats.js'
+import Stats from 'stats.js'
+import './index.css'
 
 const render = () => {
     const canvas = document.querySelector('#c');
@@ -45,11 +46,18 @@ const render = () => {
     console.log(ext)
     console.log(window)
 
-    let stats = new stats_js__WEBPACK_IMPORTED_MODULE_0__()
-    console.log(stats)
-    stats.showPanel(3);
-    let queryPanel = stats.addPanel( new stats_js__WEBPACK_IMPORTED_MODULE_0__.Panel( 'ms', '#ff8', '#221' ) );
-    document.body.appendChild(stats.dom);
+    let customStats = new Stats()
+    console.log(customStats)
+    customStats.showPanel(3);
+    let queryPanel = customStats.addPanel( new Stats.Panel( 'webgl-ms', '#ff8', '#221' ) );
+    document.body.appendChild(customStats.dom);
+
+    let fpsStats = new Stats()
+    fpsStats.showPanel(0)
+    console.log(fpsStats)
+    fpsStats.dom.style.top = '100px'
+    document.body.appendChild(fpsStats.dom)
+
 
     let availability_retry = 500
     let elapsed_query = gl.createQuery()
@@ -116,7 +124,8 @@ const render = () => {
     }
 
     function renderQueryEx1(time) {
-        stats.begin()
+        customStats.begin()
+        fpsStats.begin()
 
         if(enableQueryOnce) {
             gl.beginQuery(ext.TIME_ELAPSED_EXT, elapsed_query);
@@ -139,7 +148,8 @@ const render = () => {
             enableQueryOnce = false;
         }
         
-        stats.end()
+        fpsStats.end();
+        customStats.end()
         queryPanel.update( lastQueryResult, 400 );
 
         requestAnimationFrame(renderQueryEx1);
